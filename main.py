@@ -42,9 +42,9 @@ def read_root():
     return {"status": "ok", "message": "API Backend Asistente IA operativa."}
 
 @app.post("/chat")
-def chat_endpoint(request: ChatRequest):
+async def chat_endpoint(request: ChatRequest):
     """
     Endpoint principal para recibir mensajes del widget y devolver la respuesta de Gemini.
     """
-    response_text = generate_chat_response(request)
+    response_text = await generate_chat_response(request)
     return {"reply": response_text}

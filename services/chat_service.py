@@ -7,11 +7,11 @@ from services.sheets_loader import get_knowledge_base
 
 logger = logging.getLogger(__name__)
 
-def generate_chat_response(request: ChatRequest) -> str:
+async def generate_chat_response(request: ChatRequest) -> str:
     """
     Calls the Gemini 1.5 Flash API using the loaded in-memory knowledge base
     as System Instructions. Includes multilingual support, sentiment detection logic,
-    and a feedback loop for unanswered questions.
+    and a feedback loop for unanswered questions. (Async version)
     """
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key or api_key == "tu_api_key_aqui":
@@ -19,6 +19,7 @@ def generate_chat_response(request: ChatRequest) -> str:
         return "Lo siento, el servicio no está configurado correctamente (API Key faltante). Por favor, avisa a recepción."
         
     try:
+        # Usamos el cliente asíncrono
         client = genai.Client(api_key=api_key)
         
         # Inyección de contexto RAG
@@ -55,7 +56,8 @@ def generate_chat_response(request: ChatRequest) -> str:
                 types.Content(role=role, parts=[types.Part.from_text(text=msg.content)])
             )
             
-        response = client.models.generate_content(
+        # Llamada asíncrona a Gemini
+        response = await client.aio.models.generate_content(
             model="gemini-1.5-flash",
             contents=contents,
             config=config
@@ -63,10 +65,10 @@ def generate_chat_response(request: ChatRequest) -> str:
         
         reply_text = response.text
 
-        # Lógica de Feedback Loop (Buscador de Lagunas)
+        # Lógica de Feedback Loop (Enviamos a Sheets sin esperar respuesta)
         if "[CODE_UNANSWERED]" in reply_text:
             last_user_msg = next((m.content for m in reversed(request.messages) if m.role == "user"), "Desconocida")
-            # Ejecutamos de forma asíncrona sin bloquear la respuesta al usuario
+            # En un entorno async, esto ahora funcionará correctamente
             import asyncio
             asyncio.create_task(log_unanswered_question_to_sheets(last_user_msg))
             reply_text = reply_text.replace("[CODE_UNANSWERED]", "").strip()
