@@ -10,7 +10,8 @@ logger = logging.getLogger(__name__)
 def generate_chat_response(request: ChatRequest) -> str:
     """
     Calls the Gemini 1.5 Flash API using the loaded in-memory knowledge base
-    as System Instructions.
+    as System Instructions. Includes multilingual support, sentiment detection logic,
+    and a feedback loop for unanswered questions.
     """
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key or api_key == "tu_api_key_aqui":
@@ -23,22 +24,27 @@ def generate_chat_response(request: ChatRequest) -> str:
         # Inyección de contexto RAG
         kb_text = get_knowledge_base()
         system_instruction = (
-            "Eres el asistente virtual oficial del Hotel Tres Anclas. "
-            "Responde de manera amable, profesional y concisa a las preguntas de los usuarios "
-            "utilizando EXCLUSIVAMENTE la siguiente información operativa en tiempo real:\n\n"
-            "--- INICIO INFORMACIÓN OPERATIVA ---\n"
+            "Eres el asistente virtual oficial del Hotel Tres Anclas en Gandía. "
+            "Tu objetivo es ser servicial, profesional y ayudar a convertir consultas en reservas.\n\n"
+            "INFORMACIÓN OPERATIVA EN TIEMPO REAL:\n"
+            "--- INICIO ---\n"
             f"{kb_text}\n"
-            "--- FIN INFORMACIÓN OPERATIVA ---\n\n"
-            "REGLAS:\n"
-            "1. Si el usuario pregunta algo que no está en la información operativa proporcionada, indícale "
-            "amablemente que no dispones de esa información y sugiérele contactar con Recepción.\n"
-            "2. Usa formato claro e invierte tiempo en redactar párrafos legibles (puedes usar listas cortas si ayuda).\n"
-            "3. Tu tono es servicial y directo.\n"
+            "--- FIN ---\n\n"
+            "REGLAS CRÍTICAS DE COMPORTAMIENTO:\n"
+            "1. LENGUAJE: Responde SIEMPRE en el mismo idioma en el que te hable el usuario (español, inglés, francés, alemán, etc.), "
+            "pero usa siempre los datos exactos de la INFORMACIÓN OPERATIVA.\n"
+            "2. DESCONOCIMIENTO: Si la respuesta NO está en la información operativa, responde EXACTAMENTE: "
+            "'[CODE_UNANSWERED] Lo siento, no dispongo de esa información específica en este momento. Por favor, contacta con Recepción (Tel: +34 962 84 11 00) para ayudarte mejor.'\n"
+            "3. RESERVAS: Si el usuario muestra interés en reservar, precios o disponibilidad, invítale a usar nuestro motor de reservas oficial: "
+            "https://www.hoteltresanclas.com/es/reservas/\n"
+            "4. TONO Y FORMATO: Sé amable y usa emojis de forma sutil (✨, 🏨). Usa negritas para datos importantes como horarios o teléfonos.\n"
+            "5. SENTIMIENTO: Si detectas que el usuario está muy enfadado o expresa una queja grave, añade al final de tu respuesta: "
+            "'Aviso: He pasado nota de tu malestar al departamento correspondiente para que lo revisen cuanto antes.'\n"
         )
 
         config = types.GenerateContentConfig(
             system_instruction=system_instruction,
-            temperature=0.3, # Baja temperatura para que sea fáctico
+            temperature=0.3, 
         )
         
         # Preparación del historial de mensajes
@@ -50,13 +56,35 @@ def generate_chat_response(request: ChatRequest) -> str:
             )
             
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-1.5-flash",
             contents=contents,
             config=config
         )
         
-        return response.text
+        reply_text = response.text
+
+        # Lógica de Feedback Loop (Buscador de Lagunas)
+        if "[CODE_UNANSWERED]" in reply_text:
+            last_user_msg = next((m.content for m in reversed(request.messages) if m.role == "user"), "Desconocida")
+            log_unanswered_question(last_user_msg)
+            reply_text = reply_text.replace("[CODE_UNANSWERED]", "").strip()
+
+        return reply_text
         
     except Exception as e:
         logger.exception(f"Error calling Gemini API:")
         return "Lo siento, ha ocurrido un error al procesar tu solicitud. Por favor, inténtalo más tarde."
+
+def log_unanswered_question(question: str):
+    """Guarda la pregunta que la IA no supo responder en un archivo CSV para revisión semanal."""
+    import datetime
+    log_file = "unanswered_questions.csv"
+    file_exists = os.path.isfile(log_file)
+    try:
+        with open(log_file, "a", encoding="utf-8", newline="") as f:
+            writer = csv.writer(f, delimiter=";")
+            if not file_exists:
+                writer.writerow(["Fecha", "Pregunta"])
+            writer.writerow([datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), question])
+    except Exception as e:
+        logger.error(f"Error logging unanswered question: {e}")

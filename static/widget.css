@@ -170,11 +170,43 @@
 }
 
 #hta-chat-input-area {
-    padding: 16px;
+    padding: 12px 16px;
     background: #ffffff;
     border-top: 1px solid #edf2f7;
     display: flex;
-    gap: 12px;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#hta-suggestions-chips {
+    display: none;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+}
+
+#hta-suggestions-chips::-webkit-scrollbar {
+    display: none;
+}
+
+.hta-suggestion-chip {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.hta-suggestion-chip:hover {
+    background: #1ab9d2;
+    color: white;
+    border-color: #1ab9d2;
 }
 
 #hta-chat-input {

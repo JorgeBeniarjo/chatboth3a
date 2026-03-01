@@ -53,10 +53,13 @@
                 </div>
                 
                 <div id="hta-chat-input-area">
-                    <input type="text" id="hta-chat-input" placeholder="Escribe tu consulta..." autocomplete="off" disabled>
-                    <button id="hta-send-btn" disabled>
-                        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
-                    </button>
+                    <div id="hta-suggestions-chips"></div>
+                    <div style="display: flex; gap: 12px; width: 100%;">
+                        <input type="text" id="hta-chat-input" placeholder="Escribe tu consulta..." autocomplete="off" disabled>
+                        <button id="hta-send-btn" disabled>
+                            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
             
@@ -76,6 +79,7 @@
     const inputField = document.getElementById('hta-chat-input');
     const sendBtn = document.getElementById('hta-send-btn');
     const messagesContainer = document.getElementById('hta-chat-messages');
+    const suggestionsContainer = document.getElementById('hta-suggestions-chips');
 
     // Referencias elementos RGPD
     const rgpdScreen = document.getElementById('hta-rgpd-screen');
@@ -109,8 +113,33 @@
             inputField.disabled = false;
             sendBtn.disabled = false;
             inputField.focus();
+            showSuggestions();
         }, 300);
     });
+
+    // Sugerencias proactivas
+    function showSuggestions() {
+        const suggestions = [
+            { text: "📍 Ubicación", query: "¿Dónde está el hotel y cómo llegar?" },
+            { text: "⏰ Horarios", query: "¿Cuáles son los horarios de entrada, salida y comidas?" },
+            { text: "🏊 Servicios", query: "¿Qué servicios e instalaciones tiene el hotel?" },
+            { text: "💳 Reservar", query: "¿Cómo puedo hacer una reserva?" }
+        ];
+
+        suggestionsContainer.innerHTML = '';
+        suggestions.forEach(s => {
+            const chip = document.createElement('button');
+            chip.className = 'hta-suggestion-chip';
+            chip.textContent = s.text;
+            chip.onclick = () => {
+                inputField.value = s.query;
+                sendMessage();
+                suggestionsContainer.style.display = 'none';
+            };
+            suggestionsContainer.appendChild(chip);
+        });
+        suggestionsContainer.style.display = 'flex';
+    }
 
     // Añadir mensaje a la interfaz
     function appendMessage(text, sender) {
