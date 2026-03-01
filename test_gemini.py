@@ -1,25 +1,19 @@
 import asyncio
+import sys
 import os
-from models.chat_models import ChatRequest, Message
-from services.sheets_loader import load_csv_data
+sys.path.insert(0, ".")
+
+from services.sheets_loader import load_csv_data, get_knowledge_base
 from services.chat_service import generate_chat_response
+from models.chat_models import ChatRequest, Message
 
-async def main():
-    print("Cargando csv data...")
+async def test():
     await load_csv_data()
-    print("Enviando mensaje...")
-    request = ChatRequest(messages=[Message(role="user", content="Hola asistente")])
-    try:
-        # Ahora es asíncrono
-        response = await generate_chat_response(request)
-        print("Respuesta:", response)
-    except Exception as e:
-        import traceback
-        error_msg = f"{type(e)}\n{e}\n{traceback.format_exc()}"
-        print("Error detectado:")
-        print(error_msg)
-        with open("error_detalles.txt", "w", encoding="utf-8") as f:
-            f.write(error_msg)
+    kb = get_knowledge_base()
+    print(f"KB cargado: {len(kb)} chars")
+    resp = await generate_chat_response(
+        ChatRequest(messages=[Message(role="user", content="Hola, a que hora es el desayuno?")])
+    )
+    print("RESPUESTA:", resp)
 
-if __name__ == "__main__":
-    asyncio.run(main())
+asyncio.run(test())
