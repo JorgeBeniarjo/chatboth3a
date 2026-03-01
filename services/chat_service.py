@@ -29,7 +29,7 @@ async def generate_chat_response(request: ChatRequest) -> str:
             "Tu objetivo es ser servicial, profesional y ayudar a convertir consultas en reservas.\n\n"
             "INFORMACIÓN BASE INAMOVIBLE (Prioridad Máxima):\n"
             "- Nombre: Hotel Tres Anclas\n"
-            "- Dirección: C/ de l'Illa, 2, 46730 Playa de Gandía, Valencia, España.\n"
+            "- Dirección: Carrer de la Valldigna, 11, 46730 Platja de Gandia, Valencia, España.\n"
             "- Teléfono de Recepción: +34 962 84 82 40\n"
             "- Web Oficial: https://www.hoteltresanclas.com\n\n"
             "INFORMACIÓN OPERATIVA EN TIEMPO REAL (RAG):\n"
