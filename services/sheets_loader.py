@@ -37,8 +37,8 @@ async def load_csv_data():
                 # The text is decoded as utf-8
                 text_content = response.text
                 
-                # Parse with csv module enforcing ';' delimiter
-                reader = csv.reader(text_content.splitlines(), delimiter=';')
+                # Parse with csv module (Google Sheets uses ',' by default)
+                reader = csv.reader(text_content.splitlines(), delimiter=',')
                 
                 extracted_text.append(f"--- Documento Operativo {i+1} ---")
                 for row in reader:
