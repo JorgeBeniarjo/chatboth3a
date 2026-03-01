@@ -1,0 +1,377 @@
+/* Hotel Tres Anclas - Widget Styles */
+#hta-widget-container {
+    font-family: inherit, system-ui, sans-serif;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 999999;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+#hta-widget-button {
+    width: 60px;
+    height: 60px;
+    background-color: #1ab9d2;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease, background-color 0.3s;
+    border: none;
+    outline: none;
+}
+
+#hta-widget-button:hover {
+    transform: scale(1.05);
+    background-color: #159baf;
+}
+
+#hta-widget-button svg {
+    width: 30px;
+    height: 30px;
+    fill: currentColor;
+}
+
+#hta-chat-window {
+    width: 380px;
+    height: 600px;
+    max-height: 80vh;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    margin-bottom: 16px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    border: 1px solid #f0f0f0;
+}
+
+#hta-chat-window.hta-open {
+    display: flex;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#hta-chat-header {
+    background-color: #1ab9d2;
+    color: white;
+    padding: 16px 20px;
+    font-weight: 600;
+    font-size: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+#hta-close-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+    transition: background 0.2s;
+}
+
+#hta-close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+#hta-close-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+#hta-chat-messages {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background-color: #f9fbfd;
+}
+
+/* Chrome, Safari, Edge scrollbar */
+#hta-chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+#hta-chat-messages::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#hta-chat-messages::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 10px;
+}
+
+.hta-message {
+    max-width: 85%;
+    padding: 12px 16px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.5;
+    word-wrap: break-word;
+    animation: hta-fade-in 0.3s ease;
+}
+
+@keyframes hta-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hta-message.hta-user {
+    background-color: #1ab9d2;
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+}
+
+.hta-message.hta-bot {
+    background-color: #ffffff;
+    color: #333333;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #edf2f7;
+}
+
+.hta-message.hta-bot p {
+    margin: 0 0 8px 0;
+}
+
+.hta-message.hta-bot p:last-child {
+    margin: 0;
+}
+
+.hta-message.hta-bot ul,
+.hta-message.hta-bot ol {
+    margin: 0 0 8px 0;
+    padding-left: 20px;
+}
+
+#hta-chat-input-area {
+    padding: 16px;
+    background: #ffffff;
+    border-top: 1px solid #edf2f7;
+    display: flex;
+    gap: 12px;
+}
+
+#hta-chat-input {
+    flex-grow: 1;
+    border: 1px solid #e2e8f0;
+    border-radius: 24px;
+    padding: 12px 16px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: inherit;
+    background-color: #f8fafc;
+}
+
+#hta-chat-input:focus {
+    border-color: #1ab9d2;
+    background-color: #ffffff;
+}
+
+#hta-send-btn {
+    background-color: #1ab9d2;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    flex-shrink: 0;
+}
+
+#hta-send-btn:hover:not(:disabled) {
+    background-color: #159baf;
+}
+
+#hta-send-btn:active:not(:disabled) {
+    transform: scale(0.95);
+}
+
+#hta-send-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+    margin-left: 2px;
+}
+
+#hta-send-btn:disabled {
+    background-color: #cbd5e1;
+    cursor: not-allowed;
+}
+
+/* RGPD Screen */
+#hta-rgpd-screen {
+    position: absolute;
+    top: 60px;
+    /* Below header */
+    left: 0;
+    width: 100%;
+    height: calc(100% - 60px);
+    background: #ffffff;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    padding: 40px 30px;
+    box-sizing: border-box;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.3s ease;
+}
+
+#hta-rgpd-screen h3 {
+    margin-top: 0;
+    color: #1ab9d2;
+    font-size: 18px;
+    margin-bottom: 16px;
+}
+
+#hta-rgpd-screen p {
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.6;
+    margin-bottom: 24px;
+}
+
+.hta-rgpd-checkbox-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    text-align: left;
+    margin-bottom: 24px;
+    background: #f8fafc;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #edf2f7;
+}
+
+.hta-rgpd-checkbox-wrapper input[type="checkbox"] {
+    margin-top: 3px;
+    cursor: pointer;
+}
+
+.hta-rgpd-checkbox-wrapper label {
+    font-size: 12px;
+    color: #475569;
+    cursor: pointer;
+    line-height: 1.4;
+}
+
+#hta-rgpd-accept-btn {
+    background-color: #1ab9d2;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.2s;
+    font-family: inherit;
+}
+
+#hta-rgpd-accept-btn:disabled {
+    background-color: #cbd5e1;
+    cursor: not-allowed;
+}
+
+#hta-rgpd-accept-btn:not(:disabled):hover {
+    background-color: #159baf;
+}
+
+/* Typing indicator */
+.hta-typing-indicator {
+    display: flex;
+    gap: 4px;
+    padding: 14px 18px !important;
+    align-items: center;
+}
+
+.hta-typing-dot {
+    width: 6px;
+    height: 6px;
+    background-color: #94a3b8;
+    border-radius: 50%;
+    animation: hta-typing 1.4s infinite ease-in-out both;
+}
+
+.hta-typing-dot:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.hta-typing-dot:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+@keyframes hta-typing {
+
+    0%,
+    80%,
+    100% {
+        transform: scale(0);
+    }
+
+    40% {
+        transform: scale(1);
+    }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 480px) {
+    #hta-widget-container {
+        bottom: 16px;
+        right: 16px;
+    }
+
+    #hta-chat-window.hta-open {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+        margin: 0;
+        border-radius: 0;
+        border: none;
+        z-index: 1000000;
+    }
+
+    #hta-close-btn {
+        padding: 8px;
+    }
+
+    #hta-rgpd-screen {
+        height: calc(100% - 60px);
+    }
+}

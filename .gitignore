@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env
+
+# IDs de IDEs
+.vscode/
+.idea/
+
+# Logs y temporales
+*.log
+output.txt
+err_out.txt
+error_detalles.txt
