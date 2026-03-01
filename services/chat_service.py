@@ -66,7 +66,9 @@ def generate_chat_response(request: ChatRequest) -> str:
         # Lógica de Feedback Loop (Buscador de Lagunas)
         if "[CODE_UNANSWERED]" in reply_text:
             last_user_msg = next((m.content for m in reversed(request.messages) if m.role == "user"), "Desconocida")
-            log_unanswered_question(last_user_msg)
+            # Ejecutamos de forma asíncrona sin bloquear la respuesta al usuario
+            import asyncio
+            asyncio.create_task(log_unanswered_question_to_sheets(last_user_msg))
             reply_text = reply_text.replace("[CODE_UNANSWERED]", "").strip()
 
         return reply_text
@@ -75,16 +77,18 @@ def generate_chat_response(request: ChatRequest) -> str:
         logger.exception(f"Error calling Gemini API:")
         return "Lo siento, ha ocurrido un error al procesar tu solicitud. Por favor, inténtalo más tarde."
 
-def log_unanswered_question(question: str):
-    """Guarda la pregunta que la IA no supo responder en un archivo CSV para revisión semanal."""
-    import datetime
-    log_file = "unanswered_questions.csv"
-    file_exists = os.path.isfile(log_file)
+async def log_unanswered_question_to_sheets(question: str):
+    """Envía la pregunta que la IA no supo responder a Google Sheets vía Webhook."""
+    import httpx
+    webhook_url = os.getenv("FEEDBACK_WEBHOOK_URL")
+    
+    if not webhook_url:
+        logger.warning("FEEDBACK_WEBHOOK_URL no configurada. No se pudo registrar la pregunta.")
+        return
+
     try:
-        with open(log_file, "a", encoding="utf-8", newline="") as f:
-            writer = csv.writer(f, delimiter=";")
-            if not file_exists:
-                writer.writerow(["Fecha", "Pregunta"])
-            writer.writerow([datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), question])
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            await client.post(webhook_url, json={"question": question})
+            logger.info(f"Pregunta sin respuesta registrada en Google Sheets: {question}")
     except Exception as e:
-        logger.error(f"Error logging unanswered question: {e}")
+        logger.error(f"Error enviando feedback a Google Sheets: {e}")
