@@ -58,7 +58,7 @@ async def generate_chat_response(request: ChatRequest) -> str:
             
         # Llamada asíncrona a Gemini
         response = await client.aio.models.generate_content(
-            model="gemini-1.5-flash",
+            model="gemini-2.5-flash",
             contents=contents,
             config=config
         )
