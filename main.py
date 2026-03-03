@@ -40,6 +40,21 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 def read_root():
     return {"status": "ok", "message": "API Backend Asistente IA operativa."}
 
+@app.get("/health")
+async def health_check():
+    """Diagnóstico: muestra el estado de la base de conocimiento."""
+    from services.kb_loader import get_knowledge_base
+    import os
+    kb = get_knowledge_base()
+    return {
+        "status": "ok",
+        "kb_loaded": len(kb) > 0,
+        "kb_size_chars": len(kb),
+        "kb_url_set": bool(os.getenv("KB_URL")),
+        "reload_secret_set": bool(os.getenv("RELOAD_SECRET")),
+        "kb_preview": kb[:200] if kb else "(vacío)"
+    }
+
 @app.post("/chat")
 async def chat_endpoint(request: ChatRequest):
     """Endpoint principal para recibir mensajes del widget."""
