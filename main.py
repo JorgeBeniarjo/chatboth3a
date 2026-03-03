@@ -51,7 +51,7 @@ async def health_check():
         "kb_loaded": len(kb) > 0,
         "kb_size_chars": len(kb),
         "kb_url_set": bool(os.getenv("KB_URL")),
-        "reload_secret_set": bool(os.getenv("RELOAD_SECRET")),
+        "reload_key_set": bool(os.getenv("RELOAD_KEY")),
         "kb_preview": kb[:200] if kb else "(vacío)"
     }
 
@@ -67,7 +67,7 @@ async def reload_kb(secret: str = ""):
     Recarga la base de conocimiento desde GitHub sin reiniciar el servidor.
     Requiere la clave secreta definida en la variable RELOAD_SECRET.
     """
-    expected_secret = os.getenv("RELOAD_SECRET", "")
+    expected_secret = os.getenv("RELOAD_KEY", "")
     if not expected_secret or secret != expected_secret:
         raise HTTPException(status_code=403, detail="Clave incorrecta o no configurada.")
 

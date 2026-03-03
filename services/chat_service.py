@@ -25,7 +25,7 @@ async def generate_chat_response(request: ChatRequest) -> str:
 
     # Detección del comando secreto de recarga
     last_user_msg = next((m.content for m in reversed(request.messages) if m.role == "user"), "")
-    reload_secret = os.getenv("RELOAD_SECRET", "")
+    reload_secret = os.getenv("RELOAD_KEY", "")
     if reload_secret and last_user_msg.strip() == f"/reload {reload_secret}":
         success = await load_kb_from_github()
         if success:
