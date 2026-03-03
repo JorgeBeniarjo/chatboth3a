@@ -5,7 +5,7 @@ from google import genai
 from google.genai import types
 from google.genai.errors import ClientError
 from models.chat_models import ChatRequest
-from services.sheets_loader import get_knowledge_base
+from services.kb_loader import get_knowledge_base, load_kb_from_github
 
 logger = logging.getLogger(__name__)
 
@@ -14,18 +14,29 @@ MAX_RETRIES = 3
 
 async def generate_chat_response(request: ChatRequest) -> str:
     """
-    Calls the Gemini API using the loaded in-memory knowledge base as System Instructions.
+    Calls the Gemini API using the in-memory knowledge base (loaded from GitHub .md).
     Includes multilingual support, sentiment detection, feedback loop, and retry logic.
+    Also handles the secret /reload command to refresh knowledge base on demand.
     """
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key or api_key == "tu_api_key_aqui":
         logger.error("GEMINI_API_KEY no configurada correctamente.")
         return "Lo siento, el servicio no está configurado correctamente (API Key faltante). Por favor, avisa a recepción."
 
+    # Detección del comando secreto de recarga
+    last_user_msg = next((m.content for m in reversed(request.messages) if m.role == "user"), "")
+    reload_secret = os.getenv("RELOAD_SECRET", "")
+    if reload_secret and last_user_msg.strip() == f"/reload {reload_secret}":
+        success = await load_kb_from_github()
+        if success:
+            return "♻️ ¡Base de conocimiento recargada correctamente desde GitHub! Ya tengo la información actualizada."
+        else:
+            return "❌ Error al recargar la base de conocimiento. Revisa los logs del servidor."
+
     try:
         client = genai.Client(api_key=api_key)
 
-        # Inyección de contexto RAG
+        # Inyección de contexto RAG desde GitHub
         kb_text = get_knowledge_base()
         system_instruction = (
             "Eres el asistente virtual oficial del Hotel Tres Anclas en Gandía. "
@@ -35,7 +46,7 @@ async def generate_chat_response(request: ChatRequest) -> str:
             "- Dirección: Carrer de la Valldigna, 11, 46730 Platja de Gandia, Valencia, España.\n"
             "- Teléfono de Recepción: +34 962 84 82 40\n"
             "- Web Oficial: https://www.hoteltresanclas.com\n\n"
-            "INFORMACIÓN OPERATIVA EN TIEMPO REAL (RAG):\n"
+            "INFORMACIÓN OPERATIVA ACTUALIZADA (RAG desde GitHub):\n"
             "--- INICIO ---\n"
             f"{kb_text}\n"
             "--- FIN ---\n\n"
@@ -76,11 +87,11 @@ async def generate_chat_response(request: ChatRequest) -> str:
                     config=config
                 )
                 reply_text = response.text
-                break  # Éxito, salimos del bucle de reintentos
+                break
             except ClientError as e:
                 if e.status_code == 429:
                     if attempt < MAX_RETRIES - 1:
-                        wait_time = 2 ** (attempt + 1)  # 2s, 4s
+                        wait_time = 2 ** (attempt + 1)
                         logger.warning(f"Cuota excedida (429). Reintento en {wait_time}s... (intento {attempt + 1}/{MAX_RETRIES})")
                         await asyncio.sleep(wait_time)
                     else:
@@ -91,11 +102,10 @@ async def generate_chat_response(request: ChatRequest) -> str:
                             "**Tel: +34 962 84 82 40**. ¡Intentamos mejorar el servicio! ✨"
                         )
                 else:
-                    raise  # Otro tipo de error, lo propagamos al except exterior
+                    raise
 
-        # Lógica de Feedback Loop (registro de preguntas sin respuesta en Google Sheets)
+        # Feedback Loop: registrar preguntas sin respuesta en Google Sheets
         if "[CODE_UNANSWERED]" in reply_text:
-            last_user_msg = next((m.content for m in reversed(request.messages) if m.role == "user"), "Desconocida")
             asyncio.create_task(log_unanswered_question_to_sheets(last_user_msg))
             reply_text = reply_text.replace("[CODE_UNANSWERED]", "").strip()
 
