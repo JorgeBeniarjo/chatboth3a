@@ -7,3 +7,4 @@ class Message(BaseModel):
 
 class ChatRequest(BaseModel):
     messages: List[Message]
+    session_id: str = "unknown"

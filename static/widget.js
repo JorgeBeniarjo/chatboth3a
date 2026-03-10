@@ -88,6 +88,13 @@
 
     let isRgpdAccepted = false;
     let chatHistory = [];
+    
+    // Obtener o crear un ID de sesión para estadísticas
+    let sessionId = localStorage.getItem('hta_session_id');
+    if (!sessionId) {
+        sessionId = 'sess_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+        localStorage.setItem('hta_session_id', sessionId);
+    }
 
     // Lógica de apertura/cierre del chat
     function toggleChat() {
@@ -198,7 +205,10 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ messages: chatHistory })
+                body: JSON.stringify({ 
+                    messages: chatHistory,
+                    session_id: sessionId
+                })
             });
 
             if (!response.ok) {

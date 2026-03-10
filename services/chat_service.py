@@ -103,10 +103,20 @@ async def generate_chat_response(request: ChatRequest) -> str:
                 else:
                     raise
 
-        # Feedback Loop: registrar preguntas sin respuesta en Google Sheets
-        if "[CODE_UNANSWERED]" in reply_text:
-            asyncio.create_task(log_unanswered_question_to_sheets(last_user_msg))
+        # Feedback Loop: registrar estadísticas de uso
+        is_unanswered = "[CODE_UNANSWERED]" in reply_text
+        if is_unanswered:
             reply_text = reply_text.replace("[CODE_UNANSWERED]", "").strip()
+            # Seguimos registrando en Fallos como antes
+            asyncio.create_task(log_unanswered_question_to_sheets(last_user_msg))
+        
+        # Registramos SIEMPRE en Estadísticas
+        asyncio.create_task(log_interaction_to_sheets(
+            session_id=request.session_id,
+            question=last_user_msg,
+            answer=reply_text,
+            is_unanswered=is_unanswered
+        ))
 
         return reply_text
 
@@ -115,18 +125,39 @@ async def generate_chat_response(request: ChatRequest) -> str:
         return "Lo siento, ha ocurrido un error al procesar tu solicitud. Por favor, inténtalo más tarde."
 
 
-async def log_unanswered_question_to_sheets(question: str):
-    """Envía la pregunta sin respuesta a Google Sheets vía Webhook."""
+async def log_interaction_to_sheets(session_id: str, question: str, answer: str, is_unanswered: bool):
+    """Envía todas las interacciones a la pestaña de Estadísticas."""
     import httpx
     webhook_url = os.getenv("FEEDBACK_WEBHOOK_URL")
 
     if not webhook_url:
-        logger.warning("FEEDBACK_WEBHOOK_URL no configurada. No se pudo registrar la pregunta.")
         return
 
     try:
+        data = {
+            "type": "stat",
+            "session_id": session_id,
+            "question": question,
+            "answer": answer,
+            "status": "fail" if is_unanswered else "ok"
+        }
+        async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
+            await client.post(webhook_url, json=data)
+    except Exception as e:
+        logger.error(f"Error enviando estadística: {e}")
+
+
+async def log_unanswered_question_to_sheets(question: str):
+    """Envía la pregunta sin respuesta a Google Sheets (Hoja Fallos)."""
+    import httpx
+    webhook_url = os.getenv("FEEDBACK_WEBHOOK_URL")
+
+    if not webhook_url:
+        return
+
+    try:
+        # Mantenemos el formato exacto que ya le funciona al usuario
         async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
             await client.post(webhook_url, json={"question": question})
-            logger.info(f"Pregunta sin respuesta registrada en Google Sheets: {question}")
     except Exception as e:
-        logger.error(f"Error enviando feedback a Google Sheets: {e}")
+        logger.error(f"Error enviando fallo: {e}")
