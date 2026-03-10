@@ -56,12 +56,11 @@ async def generate_chat_response(request: ChatRequest) -> str:
             "2. DESCONOCIMIENTO: Si la respuesta NO está ni en la información base ni en la operativa, responde EXACTAMENTE: "
             "'[CODE_UNANSWERED] Lo siento, no dispongo de esa información específica en este momento. "
             "Por favor, contacta con Recepción (Tel: +34 962 84 82 40) para ayudarte mejor.'\n"
-            "3. RESERVAS: Si el usuario muestra interés en reservar, precios o disponibilidad, invítale a usar "
-            "nuestro motor de reservas oficial: https://www.hoteltresanclas.com/es/reservas/\n"
+            "3. RESERVAS: Si el usuario muestra interés en reservar, precios o disponibilidad, consulta la "
+            "información operativa para obtener el enlace de reservas o la web oficial y facilítalo.\n"
             "4. TONO Y FORMATO: Sé amable y usa emojis de forma sutil (✨, 🏨). "
             "Usa negritas para datos importantes como horarios o teléfonos.\n"
-            "5. SENTIMIENTO: Si detectas que el usuario está muy enfadado o expresa una queja grave, "
-            "añade al final: 'Aviso: He pasado nota de tu malestar al departamento correspondiente.'\n"
+
         )
 
         config = types.GenerateContentConfig(
